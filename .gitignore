@@ -33,3 +33,13 @@ InspectorExpandedItems.asset
 MonoManager.asset
 NetworkManager.asset
 ScriptMapper
+Assets/NGUI/
+Assets/NGUI.meta
+Assets/Plugins/GoKit/
+Assets/StreamingAssets/
+Assets/StreamingAssets.meta
+Assets/Plugins/GoKit.meta
+Assets/Editor.meta
+Assets/Editor/GoDummyPathEditor.cs
+Assets/Editor/GoDummyPathEditor.cs.meta
+Assets/Plugins.meta

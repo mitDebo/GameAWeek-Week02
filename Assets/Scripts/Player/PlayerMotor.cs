@@ -13,6 +13,7 @@ public class PlayerMotor : MonoBehaviour {
     Transform mTransform;
     PlayerInput input;
     CharacterController controller;
+    InventoryManager inventory;
     bool isMoving;
 
     const float LEAN_DEPTH = 10;
@@ -22,18 +23,41 @@ public class PlayerMotor : MonoBehaviour {
         mTransform = transform;
         input = GetComponent<PlayerInput>();
         controller = GetComponent<CharacterController>();
+        inventory = GetComponent<InventoryManager>();
         isMoving = false;
     }
 
     void FixedUpdate()
     {
-        // If we're not already moving and there's input, move
-        if (!isMoving && input.MovementVector != Vector3.zero)
-            StartCoroutine("move", input.MovementVector);
+        if (canMoveInDirection(input.MovementVector))
+        {
+            // If we're not already moving and there's input, move
+            if (!isMoving && input.MovementVector != Vector3.zero)
+                StartCoroutine("move", input.MovementVector);
+        }
+        else 
+        {
+            if (input.MovementVector != Vector3.zero)
+            {
+                // Even if we can't go in that direction, face the way the player inputs
+                mTransform.forward = input.MovementVector;
+            }
+            
+            // We can't move this way, huh? Attempt to pick up an item in this direction then
+            inventory.Pickup(input.MovementVector);            
+        }
         
         // If we're not moving, leaned over, and there's no input, stand back straight
-        if (input.MovementVector == Vector3.zero && !isMoving && mTransform.eulerAngles.x > 0)
+        if (!isMoving && mTransform.localEulerAngles.x > 0)
             standStraight();
+    }
+
+    bool canMoveInDirection(Vector3 direction)
+    {
+        Ray ray = new Ray(new Vector3(mTransform.position.x, 0.5f, mTransform.position.z), direction);
+        if (Physics.Raycast(ray, 1f))
+            return false;
+        return true;
     }
 
     // The sequence of animation to move to a new square
@@ -59,10 +83,11 @@ public class PlayerMotor : MonoBehaviour {
                 newPosition.x = Mathf.Clamp(newPosition.x, destinationPosition.x, mTransform.position.x);
             else if (moveVector.x > 0)
                 newPosition.x = Mathf.Clamp(newPosition.x, mTransform.position.x, destinationPosition.x);
-            if (moveVector.y < 0)
-                newPosition.y = Mathf.Clamp(newPosition.y, destinationPosition.y, mTransform.position.y);
-            else if (moveVector.x > 0)
-                newPosition.y = Mathf.Clamp(newPosition.y, mTransform.position.y, destinationPosition.y);
+            if (moveVector.z < 0)
+                newPosition.z = Mathf.Clamp(newPosition.z, destinationPosition.z, mTransform.position.z);
+            else if (moveVector.z > 0)
+                newPosition.z = Mathf.Clamp(newPosition.z, mTransform.position.z, destinationPosition.z);
+
             mTransform.position = newPosition;
 
             // And now animate the lean, if needed
@@ -82,10 +107,10 @@ public class PlayerMotor : MonoBehaviour {
     void standStraight()
     {
         float localLeanSpeed = LEAN_DEPTH / LeanSpeed;
-        if (mTransform.eulerAngles.x > 0)
+        if (mTransform.localEulerAngles.x > 0)
         {
-            float newLean = Mathf.Clamp(mTransform.eulerAngles.x - localLeanSpeed * Time.deltaTime, 0f, LEAN_DEPTH);
-            mTransform.rotation = Quaternion.Euler(new Vector3(newLean, mTransform.eulerAngles.y, mTransform.eulerAngles.z));
+            float newLean = Mathf.Clamp(mTransform.localEulerAngles.x - localLeanSpeed * Time.deltaTime, 0f, LEAN_DEPTH);
+            mTransform.localRotation = Quaternion.Euler(new Vector3(newLean, mTransform.localEulerAngles.y, mTransform.localEulerAngles.z));
         }
     }
 }

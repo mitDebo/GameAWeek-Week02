@@ -24,6 +24,7 @@ public class LevelGenerator : MonoBehaviour {
         groceriesPrefabs = GetComponent<GroceryTypes>();
         groceriesInLevel = new List<string>();
         GenerateWorld();
+        GameObject.FindGameObjectWithTag(Tags.Player).GetComponent<InventoryManager>().SelectWantedGroceries(groceriesInLevel); // Set up the player grocery list
     }
 
     public void GenerateWorld()
@@ -102,10 +103,19 @@ public class LevelGenerator : MonoBehaviour {
                 {
                     for (int h = 0; h < wallHeight; h++)
                     {
-                        GameObject wall = Instantiate(WallPrefab) as GameObject;
-                        wall.transform.position = new Vector3(x, h + 0.5f, y - 0.5f);
-                        wall.transform.localEulerAngles = new Vector3(0f, 180f, 0f);
-                        wall.transform.parent = geometryRoot;
+                        if (x < 2 || x > 10)
+                        {
+                            GameObject wall = Instantiate(WallPrefab) as GameObject;
+                            wall.transform.position = new Vector3(x, h + 0.5f, y - 0.5f);
+                            wall.transform.localEulerAngles = new Vector3(0f, 180f, 0f);
+                            wall.transform.parent = geometryRoot;
+
+                            wall = Instantiate(WallPrefab) as GameObject;
+                            wall.AddComponent<SeeThrough>();
+                            wall.transform.position = new Vector3(x, h + 0.5f, y - 0.5f);
+                            wall.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+                            wall.transform.parent = geometryRoot;
+                        }
                     }
                 }
                 // Back walls
@@ -171,7 +181,7 @@ public class LevelGenerator : MonoBehaviour {
                 {
                     GameObject curGrocery = Instantiate(grocery) as GameObject;
                     curGrocery.transform.parent = groceriesRoot.transform;
-                    curGrocery.transform.position = new Vector3( (currentAisle + 1) * aisleWidth - 1, 1.5f, k + mainhallHeight);
+                    curGrocery.transform.position = new Vector3((currentAisle + 1) * aisleWidth - 1, 1.5f, k + mainhallHeight);
                     curGrocery.name = curGrocery.name.Substring(0, curGrocery.name.IndexOf("(Clone)"));
                 }
             }

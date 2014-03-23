@@ -4,29 +4,39 @@ using System.Collections.Generic;
 
 public class InventoryManager : MonoBehaviour {
     public GameObject FloatingTextPrefab;
-    
+    public List<string> ShoppingList;
+    public int ShoppingListLength;
+
     Transform mTransform;
-    List<string> desiredItems;
 
     void Start()
     {
         mTransform = transform;
-        desiredItems = new List<string>();
-        desiredItems.Add("Banana");
-        desiredItems.Add("Apple");
+    }
+
+    public void SelectWantedGroceries(List<string> availableGroceries)
+    {
+        ShoppingList = new List<string>();
+        for (int i = 0; i < ShoppingListLength; i++)
+        {
+            int index = Random.Range(0, availableGroceries.Count);
+            ShoppingList.Add(availableGroceries[index]);
+            availableGroceries.Remove(availableGroceries[index]);
+        }
     }
 
     public void Pickup(Vector3 direction)
     {
+        Debug.Log(ShoppingList.Count);
         Ray ray = new Ray(new Vector3(mTransform.position.x, 1.5f, mTransform.position.z), direction);
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, 1f, Layers.GroceriesMask))
         {
             GameObject foundObj = hit.collider.gameObject;
-            if (desiredItems.Contains(foundObj.name))
+            if (ShoppingList.Contains(foundObj.name))
             {
                 FireFloatingInventoryText(foundObj.name);    // Fire off the floating text of what we picked up
-                desiredItems.Remove(foundObj.name);
+                ShoppingList.Remove(foundObj.name);
                 Destroy(foundObj);
             }            
         }

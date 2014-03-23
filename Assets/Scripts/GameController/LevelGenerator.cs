@@ -1,26 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class LevelGenerator : MonoBehaviour {
     public GameObject FloorPrefab;
     public GameObject ShelfPrefab;
     public GameObject WallPrefab;
 
-    public int NumAisles;          // The number of aisles in the store
-    public int AisleLength;     // The length of each aisle
+    public int NumAisles;           // The number of aisles in the store
+    public int AisleLength;         // The length of each aisle
+    public int ItemsPerAisle;       // The number of items per aisle - must be 3 + 2n
 
     Transform geometryRoot;
     const int aisleWidth = 5;
     const int mainhallHeight = 3;
     const int wallHeight = 3;
 
+    GroceryTypes groceriesPrefabs;
+    List<string> groceriesInLevel;
+
     void Start()
     {
+        groceriesPrefabs = GetComponent<GroceryTypes>();
+        groceriesInLevel = new List<string>();
         GenerateWorld();
     }
 
     public void GenerateWorld()
     {
+        // First, we generate the geometry
         geometryRoot = new GameObject("GeometryRoot").transform;
         geometryRoot.position = Vector3.zero;
 
@@ -111,6 +119,69 @@ public class LevelGenerator : MonoBehaviour {
                         wall.transform.parent = geometryRoot;
                     }
                 }
+            }
+        }
+
+        // Now, we generate the groceries to pick up
+        Transform groceriesRoot = new GameObject("GroceriesRoot").transform;
+        List<GameObject> g = new List<GameObject>();
+        for (int i = 0; i < groceriesPrefabs.GroceryPrefabs.Length; i++)
+            g.Add(groceriesPrefabs.GroceryPrefabs[i]);
+
+        int currentAisle = 0;
+        int currentItemInAisle = 0;
+        for (int i = 0; i < ItemsPerAisle * NumAisles; i++)
+        {
+            // First, we get an available grocery item, and remove it from the list of available items
+            int index = Random.Range(0, g.Count);
+            GameObject grocery = g[index];
+            groceriesInLevel.Add(grocery.name);
+            g.Remove(grocery);
+
+            // Back row
+            if (currentItemInAisle == Mathf.FloorToInt(ItemsPerAisle / 2f))
+            {
+                for (int k = 1; k < aisleWidth - 1; k++)
+                {
+                    GameObject curGrocery = Instantiate(grocery) as GameObject;
+                    curGrocery.transform.parent = groceriesRoot.transform;
+                    curGrocery.transform.position = new Vector3(currentAisle * aisleWidth + k, 1.5f, totalHeight);
+                    curGrocery.name = curGrocery.name.Substring(0, curGrocery.name.IndexOf("(Clone)"));
+                }
+            }
+            else if (currentItemInAisle < (ItemsPerAisle / 2f))
+            {
+                // Left side of aisle
+                int lowerBound = currentItemInAisle * (AisleLength / Mathf.FloorToInt(ItemsPerAisle / 2f));
+                int upperBound = (currentItemInAisle + 1) * (AisleLength / Mathf.FloorToInt(ItemsPerAisle / 2f));
+                for (int k = lowerBound; k < upperBound; k++)
+                {
+                    GameObject curGrocery = Instantiate(grocery) as GameObject;
+                    curGrocery.transform.parent = groceriesRoot.transform;
+                    curGrocery.transform.position = new Vector3(currentAisle * aisleWidth, 1.5f, k + mainhallHeight);
+                    curGrocery.name = curGrocery.name.Substring(0, curGrocery.name.IndexOf("(Clone)"));
+                }
+            } 
+            else if (currentItemInAisle > (ItemsPerAisle / 2f))
+            {
+                // Right side of aisle
+                int lowerBound = (currentItemInAisle - Mathf.CeilToInt(ItemsPerAisle / 2f)) * (AisleLength / Mathf.FloorToInt(ItemsPerAisle / 2f));
+                int upperBound = (currentItemInAisle - Mathf.CeilToInt(ItemsPerAisle / 2f) + 1) * (AisleLength / Mathf.FloorToInt(ItemsPerAisle / 2f));
+                for (int k = lowerBound; k < upperBound; k++)
+                {
+                    GameObject curGrocery = Instantiate(grocery) as GameObject;
+                    curGrocery.transform.parent = groceriesRoot.transform;
+                    curGrocery.transform.position = new Vector3( (currentAisle + 1) * aisleWidth - 1, 1.5f, k + mainhallHeight);
+                    curGrocery.name = curGrocery.name.Substring(0, curGrocery.name.IndexOf("(Clone)"));
+                }
+            }
+
+
+            currentItemInAisle++;
+            if (currentItemInAisle >= ItemsPerAisle)
+            {
+                currentItemInAisle = 0;
+                currentAisle++;
             }
         }
     }

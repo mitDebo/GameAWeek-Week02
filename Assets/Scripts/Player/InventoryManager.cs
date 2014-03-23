@@ -12,8 +12,8 @@ public class InventoryManager : MonoBehaviour {
     {
         mTransform = transform;
         desiredItems = new List<string>();
-        desiredItems.Add("Grocery1");
-        desiredItems.Add("Grocery3");
+        desiredItems.Add("Banana");
+        desiredItems.Add("Apple");
     }
 
     public void Pickup(Vector3 direction)

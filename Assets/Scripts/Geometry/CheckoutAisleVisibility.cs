@@ -8,6 +8,7 @@ public class CheckoutAisleVisibility : MonoBehaviour {
 	    // Add the see through component to each child
         int numChildren = transform.childCount;
         for (int i = 0; i < numChildren; i++)
-            transform.GetChild(i).gameObject.AddComponent<SeeThrough>();
+            if (transform.GetChild(i).gameObject.renderer != null)
+                transform.GetChild(i).gameObject.AddComponent<SeeThrough>();
 	}
 }

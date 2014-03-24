@@ -12,6 +12,7 @@ public class LevelGenerator : MonoBehaviour {
     public int ItemsPerAisle;       // The number of items per aisle - must be 3 + 2n
 
     Transform geometryRoot;
+    Transform groceriesRoot;
     const int aisleWidth = 5;
     const int mainhallHeight = 3;
     const int wallHeight = 3;
@@ -23,8 +24,12 @@ public class LevelGenerator : MonoBehaviour {
     {
         groceriesPrefabs = GetComponent<GroceryTypes>();
         groceriesInLevel = new List<string>();
-        GenerateWorld();
-        GameObject.FindGameObjectWithTag(Tags.Player).GetComponent<InventoryManager>().SelectWantedGroceries(groceriesInLevel); // Set up the player grocery list
+    }
+
+    public void DestroyWorld()
+    {
+        Destroy(geometryRoot.gameObject);
+        Destroy(groceriesRoot.gameObject);
     }
 
     public void GenerateWorld()
@@ -131,9 +136,23 @@ public class LevelGenerator : MonoBehaviour {
                 }
             }
         }
+        
+
+        // Special case, when the store is more narrow than the checkout aisle
+        if (totalWidth < 11)
+        {
+            for (int h = 0; h < wallHeight; h++)
+            {
+                GameObject wall = Instantiate(WallPrefab) as GameObject;
+                wall.AddComponent<SeeThrough>();
+                wall.transform.position = new Vector3(10, h + 0.5f, -0.5f);
+                wall.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+                wall.transform.parent = geometryRoot;
+            }
+        }
 
         // Now, we generate the groceries to pick up
-        Transform groceriesRoot = new GameObject("GroceriesRoot").transform;
+        groceriesRoot = new GameObject("GroceriesRoot").transform;
         List<GameObject> g = new List<GameObject>();
         for (int i = 0; i < groceriesPrefabs.GroceryPrefabs.Length; i++)
             g.Add(groceriesPrefabs.GroceryPrefabs[i]);
@@ -194,5 +213,7 @@ public class LevelGenerator : MonoBehaviour {
                 currentAisle++;
             }
         }
+
+        GameObject.FindGameObjectWithTag(Tags.Player).GetComponent<InventoryManager>().SelectWantedGroceries(groceriesInLevel); // Set up the player grocery list
     }
 }

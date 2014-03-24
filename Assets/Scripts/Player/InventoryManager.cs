@@ -8,10 +8,22 @@ public class InventoryManager : MonoBehaviour {
     public int ShoppingListLength;
 
     Transform mTransform;
+    GameState state;
+    int itemsBought;
+    public int ItemsBought
+    {
+        get { return itemsBought; }
+    }
 
     void Start()
     {
         mTransform = transform;
+        state = GameObject.FindGameObjectWithTag(Tags.GameController).GetComponent<GameState>();
+    }
+
+    public void Reset()
+    {
+        itemsBought = 0;
     }
 
     public void SelectWantedGroceries(List<string> availableGroceries)
@@ -38,7 +50,25 @@ public class InventoryManager : MonoBehaviour {
                 FireFloatingInventoryText(foundObj.name);    // Fire off the floating text of what we picked up
                 ShoppingList.Remove(foundObj.name);
                 Destroy(foundObj);
+
+                if (ShoppingList.Count == 0)
+                {
+                    state.CurrentState = GameState.PossibleStates.CHECKOUT;
+                    itemsBought = 0;
+                }
             }            
+        }
+
+        if (state.CurrentState == GameState.PossibleStates.CHECKOUT)
+        {
+            if (Physics.Raycast(ray, out hit, 1f, Layers.CashRegisterMask))
+            {
+                GameObject foundObj = hit.collider.gameObject;
+                itemsBought++;
+
+                if (itemsBought == ShoppingListLength)
+                    state.CurrentState = GameState.PossibleStates.LEAVE;
+            }
         }
     }
 

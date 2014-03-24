@@ -14,7 +14,10 @@ public class PlayerMotor : MonoBehaviour {
     PlayerInput input;
     CharacterController controller;
     InventoryManager inventory;
+    Sanity sanity;
     bool isMoving;
+
+    bool freeze;
 
     const float LEAN_DEPTH = 10;
 
@@ -24,38 +27,43 @@ public class PlayerMotor : MonoBehaviour {
         input = GetComponent<PlayerInput>();
         controller = GetComponent<CharacterController>();
         inventory = GetComponent<InventoryManager>();
+        sanity = GetComponent<Sanity>();
         isMoving = false;
+        freeze = true;
     }
 
     void FixedUpdate()
     {
-        if (canMoveInDirection(input.MovementVector))
+        if (GameState.AcceptInput)
         {
-            // If we're not already moving and there's input, move
-            if (!isMoving && input.MovementVector != Vector3.zero)
-                StartCoroutine("move", input.MovementVector);
-        }
-        else 
-        {
-            if (input.MovementVector != Vector3.zero)
+            if (canMoveInDirection(input.MovementVector))
             {
-                // Even if we can't go in that direction, face the way the player inputs
-                mTransform.forward = input.MovementVector;
+                // If we're not already moving and there's input, move
+                if (!isMoving && input.MovementVector != Vector3.zero)
+                    StartCoroutine("move", input.MovementVector);
             }
-            
-            // We can't move this way, huh? Attempt to pick up an item in this direction then
-            inventory.Pickup(input.MovementVector);            
+            else
+            {
+                if (input.MovementVector != Vector3.zero)
+                {
+                    // Even if we can't go in that direction, face the way the player inputs
+                    mTransform.forward = input.MovementVector;
+                }
+
+                // We can't move this way, huh? Attempt to pick up an item in this direction then
+                inventory.Pickup(input.MovementVector);
+            }
+
+            // If we're not moving, leaned over, and there's no input, stand back straight
+            if (!isMoving && mTransform.localEulerAngles.x > 0)
+                standStraight();
         }
-        
-        // If we're not moving, leaned over, and there's no input, stand back straight
-        if (!isMoving && mTransform.localEulerAngles.x > 0)
-            standStraight();
     }
 
     bool canMoveInDirection(Vector3 direction)
     {
         Ray ray = new Ray(new Vector3(mTransform.position.x, 0.5f, mTransform.position.z), direction);
-        if (Physics.Raycast(ray, 1f))
+        if (Physics.Raycast(ray, 1f, (~Layers.ExitTriggerMask)))
             return false;
         return true;
     }
@@ -100,6 +108,7 @@ public class PlayerMotor : MonoBehaviour {
             yield return new WaitForFixedUpdate();
         }
 
+        sanity.SubtractSanity();
         isMoving = false;
     }
 

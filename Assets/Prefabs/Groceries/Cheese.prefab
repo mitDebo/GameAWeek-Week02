@@ -12,7 +12,6 @@ GameObject:
   - 23: {fileID: 2300000}
   - 114: {fileID: 11400000}
   - 135: {fileID: 13500002}
-  - 135: {fileID: 13500000}
   m_Layer: 8
   m_Name: Cheese
   m_TagString: Grocery
@@ -70,18 +69,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5475ea17e13a9684ca2f8936a9063e47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!135 &13500000
-SphereCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 100000}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: .5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!135 &13500002
 SphereCollider:
   m_ObjectHideFlags: 1
